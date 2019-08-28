@@ -17,6 +17,7 @@ async function createMock (projectId, swaggerDocs) {
   const apis = await MockProxy.find({ project: projectId })
 
   const newAPIs = []
+  const oldAPIs = []
   const promises = []
   const errorURLs = []
 
@@ -84,11 +85,21 @@ async function createMock (projectId, swaggerDocs) {
         })
         continue
       }
+
+      api.method = method
+      api.url = fullAPIPath
+      api.description = desc
+      api.response_model = responseModel
+
+      oldAPIs.push(api)
     }
   }
 
   /* istanbul ignore else */
   if (newAPIs.length > 0) promises.push(MockProxy.newAndSave(newAPIs))
+
+  /* istanbul ignore else */
+  if (oldAPIs.length > 0) promises.push(MockProxy.updateMany(oldAPIs))
 
   return Promise.all(promises).then(() => errorURLs)
 }
